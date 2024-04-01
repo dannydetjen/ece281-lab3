@@ -123,6 +123,7 @@ begin
         
         -- Left turn signal
         w_left  <= '1';
+        w_right <= '0';
         wait for k_clk_period;
         assert w_lights_L = "110" report "Test 3 failed" severity failure;
         assert w_lights_R = "000" report "Test 4 failed" severity failure;
