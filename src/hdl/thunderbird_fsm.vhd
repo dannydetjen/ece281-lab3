@@ -36,18 +36,18 @@
 --|					can be changed by the inputs
 --|					
 --|
---|                 xxx State Encoding key
+--|                 BINARY State Encoding key
 --|                 --------------------
---|                  State | Encoding
+--|                  State | ENCODING
 --|                 --------------------
---|                  OFF   | 
---|                  ON    | 
---|                  R1    | 
---|                  R2    | 
---|                  R3    | 
---|                  L1    | 
---|                  L2    | 
---|                  L3    | 
+--|                  OFF   | 000
+--|                  ON    | 111
+--|                  R1    | 001
+--|                  R2    | 010
+--|                  R3    | 100
+--|                  L1    | 110
+--|                  L2    | 101
+--|                  L3    | 011
 --|                 --------------------
 --|
 --|
@@ -87,22 +87,105 @@ library ieee;
  
 entity thunderbird_fsm is 
   port(
-	
+	   i_clk, i_reset  : in    std_logic;
+       i_left, i_right : in    std_logic;
+       o_lights_L      : out   std_logic_vector(2 downto 0);
+       o_lights_R      : out   std_logic_vector(2 downto 0)
   );
 end thunderbird_fsm;
 
 architecture thunderbird_fsm_arch of thunderbird_fsm is 
-
 -- CONSTANTS ------------------------------------------------------------------
-  
+   constant OFF   : std_logic_vector(2 downto 0) := "000";
+   constant ON_STATE    : std_logic_vector(2 downto 0) := "111";
+   constant R1    : std_logic_vector(2 downto 0) := "001";
+   constant R2    : std_logic_vector(2 downto 0) := "010";
+   constant R3    : std_logic_vector(2 downto 0) := "100";
+   constant L1    : std_logic_vector(2 downto 0) := "110";
+   constant L2    : std_logic_vector(2 downto 0) := "101";
+   constant L3    : std_logic_vector(2 downto 0) := "011";
+   
+   type state_type is (OFF_ST, ON_ST, R1_ST, R2_ST, R3_ST, L1_ST, L2_ST, L3_ST);
+   signal state, next_state : state_type;
+      
+   signal w_R_next : std_logic_vector(2 downto 0);
+   signal w_L_next : std_logic_vector(2 downto 0);
 begin
 
 	-- CONCURRENT STATEMENTS --------------------------------------------------------	
-	
-    ---------------------------------------------------------------------------------
-	
-	-- PROCESSES --------------------------------------------------------------------
-    
-	-----------------------------------------------------					   
+	--Next State Logic:
+	process(state, i_left, i_right)
+        begin
+            case state is
+                when OFF_ST =>
+                    -- Reset to OFF state
+                    w_R_next <= OFF;
+                    w_L_next <= OFF;
+                    if i_left = '1' and i_right = '0' then
+                        next_state <= L1_ST;
+                    elsif i_left = '0' and i_right = '1' then
+                        next_state <= R1_ST;
+                    elsif i_left = '1' and i_right = '1' then
+                        next_state <= ON_ST;
+                    else
+                        next_state <= OFF_ST;
+                    end if;
+                    
+                when ON_ST =>
+                    w_R_next <= ON_STATE; -- Changed constant name
+                    w_L_next <= ON_STATE; -- Changed constant name
+                    next_state <= OFF_ST;
+                    
+                when R1_ST =>
+                    w_R_next <= R1;
+                    w_L_next <= OFF;
+                    next_state <= R2_ST;
+                    
+                when R2_ST =>
+                    w_R_next <= R2;
+                    w_L_next <= OFF;
+                    next_state <= R3_ST;
+                    
+                when R3_ST =>
+                    w_R_next <= R3;
+                    w_L_next <= OFF;
+                    next_state <= OFF_ST;
+                    
+                when L1_ST =>
+                    w_R_next <= OFF;
+                    w_L_next <= L1;
+                    next_state <= L2_ST;
+                    
+                when L2_ST =>
+                    w_R_next <= OFF;
+                    w_L_next <= L2;
+                    next_state <= L3_ST;
+                    
+                when L3_ST =>
+                    w_R_next <= OFF;
+                    w_L_next <= L3;
+                    next_state <= OFF_ST;
+                    
+                when others =>
+                    -- Default case
+                    w_R_next <= OFF;
+                    w_L_next <= OFF;
+                    next_state <= OFF_ST;
+            end case;
+        end process;
+        -- Output Logic
+        o_lights_R <= w_R_next;
+        o_lights_L <= w_L_next;
+        
+        -- PROCESSES ------------------------------------------
+        register_proc : process(i_clk, i_reset)
+        begin
+            if i_reset = '1' then
+                state <= OFF_ST;        -- Reset state to OFF
+            elsif rising_edge(i_clk) then
+                state <= next_state;    -- Next state becomes current state
+            end if;
+        end process register_proc;
+        ------------------------------------------------------					   
 				  
 end thunderbird_fsm_arch;
