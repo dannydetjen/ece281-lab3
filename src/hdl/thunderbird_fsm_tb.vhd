@@ -140,34 +140,15 @@ begin
         wait for k_clk_period * 3; -- Stay in right turn state
         
         -- Hazard lights
-        --w_right <= '1';
-        --w_left  <= '1';
-        --wait for k_clk_period;
-        --assert w_lights_L = "111" report "Test 7 failed" severity failure;
-        --assert w_lights_R = "111" report "Test 8 failed" severity failure;
-        
-        --wait for k_clk_period * 3; -- Stay in hazard lights state
-        
-        -------------------------------------------------------------------------------
-        
-        -- Left turn signal
+        w_right <= '1';
         w_left  <= '1';
         wait for k_clk_period;
-        assert w_lights_L = "110" report "Test 3 failed: Expected L1 state not met" severity failure;
-        assert w_lights_R = "000" report "Test 4 failed: Expected R lights off in L1 state" severity failure;
+        assert w_lights_L = "111" report "Test 7 failed" severity failure;
+        assert w_lights_R = "111" report "Test 8 failed" severity failure;
         
-        wait for k_clk_period; -- Transition to L2 state
-        assert w_lights_L = "101" report "Test 3a failed: Expected L2 state not met" severity failure;
-        assert w_lights_R = "000" report "Test 4a failed: Expected R lights off in L2 state" severity failure;
+        wait for k_clk_period * 3; -- Stay in hazard lights state
         
-        wait for k_clk_period; -- Transition to L3 state
-        assert w_lights_L = "011" report "Test 3b failed: Expected L3 state not met" severity failure;
-        assert w_lights_R = "000" report "Test 4b failed: Expected R lights off in L3 state" severity failure;
-        
-        wait for k_clk_period; -- Should be back to OFF state after L3
-        assert w_lights_L = "000" report "Test 3c failed: Expected to return to OFF state after L3" severity failure;
-        assert w_lights_R = "000" report "Test 4c failed: Expected R lights to remain off after cycle" severity failure;
-
+        -------------------------------------------------------------------------------
         
         -- Reset again
         w_reset <= '1';
