@@ -124,29 +124,23 @@ begin
         -- Left turn signal
         w_left  <= '1';
         w_right <= '0';
-        wait for k_clk_period;
+        wait for k_clk_period * 4;  -- Wait for four clock periods to ensure stability
         assert w_lights_L = "110" report "Test 3 failed" severity failure;
-        --assert w_lights_R = "000" report "Test 4 failed" severity failure;
-        
-        wait for k_clk_period * 3;  -- Stay in left turn state
+        assert w_lights_R = "000" report "Test 4 failed" severity failure;
         
         -- Right turn signal
         w_left  <= '0';
         w_right <= '1';
-        wait for k_clk_period;
+        wait for k_clk_period * 4;  -- Wait for four clock periods to ensure stability
         assert w_lights_L = "000" report "Test 5 failed" severity failure;
         assert w_lights_R = "001" report "Test 6 failed" severity failure;
-        
-        wait for k_clk_period * 3; -- Stay in right turn state
         
         -- Hazard lights
         w_right <= '1';
         w_left  <= '1';
-        wait for k_clk_period;
+        wait for k_clk_period * 4;  -- Wait for four clock periods to ensure stability
         assert w_lights_L = "111" report "Test 7 failed" severity failure;
         assert w_lights_R = "111" report "Test 8 failed" severity failure;
-        
-        wait for k_clk_period * 3; -- Stay in hazard lights state
         
         -------------------------------------------------------------------------------
         
